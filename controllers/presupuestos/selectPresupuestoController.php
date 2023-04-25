@@ -12,7 +12,7 @@
         $req = $MO->presupuestar($idOrden, $id);
     }else{
         $request = $MP->unselect_presupuesto($id);
-        $req = $MO->presupuestar($idOrden, $id);
+        $req = $MO->presupuestar($idOrden, '0');
     }
     echo $request;
 ?>

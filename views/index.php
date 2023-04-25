@@ -59,6 +59,8 @@
     </div>
 
     <?php include 'template/plugins.php'?>
+      <!-- PAGE LEVEL SCRIPTS-->
+    <script src="../js/console-index.js" type="text/javascript"></script>
 </body>
 
 </html>

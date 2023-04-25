@@ -155,7 +155,7 @@ $(document).on('click', ".unselectBtn", function(){
                 type: 'POST',
                 data:{
                     id: id,
-                    idOrden: 0,
+                    idOrden: idOrden,
                     select: 'no'
                 }
             }).done(function(resp){

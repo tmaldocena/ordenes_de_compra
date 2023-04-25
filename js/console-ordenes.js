@@ -59,7 +59,7 @@ function listar_ordenes(){
             }},
             {"data":"presupuesto_id",
                 render: function(data,type,row){
-                    if(data === 0 || data === null){
+                    if(data === '0' || data === null){
                         return `<i class="fa fa-times text-danger" aria-hidden="true"></i>`;
                     }else{
                         return `<i class="fa fa-check text-success" aria-hidden="true"></i>`;
