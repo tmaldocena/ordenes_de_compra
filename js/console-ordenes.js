@@ -23,7 +23,7 @@ $(document).ready(function () {
 
 function listar_ordenes(){
     table = $("#tabla_ordenes").DataTable({
-		"ordering":false,
+		"ordering":true,
         "lengthChange": false,
         "bFilter": false,
         "destroy":true,
@@ -268,6 +268,12 @@ switch (id) {
         break;
     case '7':
         return 'Logística'
+        break;
+    case '8':
+        return 'Arquitecto'
+        break;
+    case '9':
+        return 'Talento Humano'
         break;
     default:
         break;

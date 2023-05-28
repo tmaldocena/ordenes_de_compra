@@ -62,5 +62,19 @@ class presupuesto{
 
             $this->connection->close();
         }
+        function filter_presupuesto($presupuestoID){
+            $sql = "call SP_FILTER_PRESUPUESTO('$presupuestoID')";
+            $array = array();
+            
+            if($request = $this->connection->connection->query($sql)){
+                while($request_vu = mysqli_fetch_assoc($request)){
+                        $array['data'][] = $request_vu;
+                }
+                return $array;
+                $this->connection->close();
+            }
+
+            $this->connection->close();
+        }
     }
 ?>

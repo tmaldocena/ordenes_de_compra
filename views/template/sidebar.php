@@ -40,6 +40,12 @@
                         <a href="../../views/ordenesHistorial.php">Historial de Órdenes</a>
                     </li>
                 </ul>
+                <li>
+                    <a href="../../views/reportes.php">
+                    <i class="sidebar-item-icon fa fa-search"></i>
+                        <span class="nav-label">Reportes</span>
+                    </a>
+                </li>
             </li>
         </ul>
     </div>

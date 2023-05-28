@@ -68,7 +68,7 @@
             <input type="number" class="form-control" id="ordenCant" placeholder="0"></input>
         </div>
         <div class="col-lg-12 mt-4">
-            <label>Status</label>
+            <label>Sector</label>
             <select class="form-control" id="selectSector" style="width: 100%" data-hide-search="true">
                 <option value="0" selected disabled>Seleccione el sector</option>
             </select>
@@ -108,7 +108,7 @@
             <input type="number" class="form-control" id="ordenCantEdit" placeholder="0"></input>
         </div>
         <div class="col-lg-12 mt-4">
-            <label>Status</label>
+            <label>Sector</label>
             <select class="form-control" id="selectSectorEdit" style="width: 100%" data-hide-search="true">
                 <option value="0" selected disabled>Seleccione el sector</option>
             </select>
