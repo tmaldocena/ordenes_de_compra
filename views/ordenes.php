@@ -9,6 +9,15 @@
 <html lang="es">
 
 <?php include 'template/head.php' ?>
+<style>
+  .dataTables_filter {
+    white-space:nowrap;
+}
+
+.dataTables_filter label, .dataTables_filter input {
+    display: inline-block;
+}
+</style>
 
 
 <body class="fixed-navbar">
@@ -93,7 +102,7 @@
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLongTitle">Editar Rol</h5>
+        <h5 class="modal-title" id="exampleModalLongTitle">Editar Orden</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>

@@ -18,14 +18,15 @@ $(document).ready(function () {
     $('#selectSector').select2({
         minimumResultsForSearch: Infinity
     });
-    
+    $('.dataTables_filter input[type="search"]').attr('placeholder','Buscar orden...').css({'width':'350px','display':'inline-block'});
 });
 
 function listar_ordenes(){
     table = $("#tabla_ordenes").DataTable({
 		"ordering":true,
         "lengthChange": false,
-        "bFilter": false,
+        "bFilter": true,
+        "dom" : "<'row'<'col-md-3'f>><'row'<'col-lg-12't>>",
         "destroy":true,
         "async": false ,
         "responsive": true,
