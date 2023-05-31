@@ -26,7 +26,6 @@ function listar_ordenes(){
 		"ordering":true,
         "lengthChange": false,
         "bFilter": true,
-        "dom" : "<'row'<'col-md-3'f>><'row'<'col-lg-12't>>",
         "destroy":true,
         "async": false ,
         "responsive": true,
