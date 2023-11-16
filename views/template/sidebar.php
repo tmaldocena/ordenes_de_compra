@@ -41,6 +41,27 @@
                     </li>
                 </ul>
                 <li>
+                    <a href="../../views/proveedores.php">
+                    <i class="sidebar-item-icon fa fa-users"></i>
+                        <span class="nav-label">Proveedores</span>
+                    </a>
+                </li>
+                <li>
+                <a href="javascript:;"><i class="sidebar-item-icon fa fa-truck"></i>
+                    <span class="nav-label">Transporte</span><i class="fa fa-angle-left arrow"></i></a>
+                <ul class="nav-2-level collapse">
+                    <li>
+                        <a href="../../views/ordenesTransporte.php">Órdenes de Transporte</a>
+                    </li>
+                    <li>
+                        <a href="../../views/transportes.php">Transportes</a>
+                    </li>
+                    <li>
+                        <a href="../../views/transporteHistorial.php">Historial de Órdenes</a>
+                    </li>
+                </ul>
+                </li>
+                <li>
                     <a href="../../views/reportes.php">
                     <i class="sidebar-item-icon fa fa-search"></i>
                         <span class="nav-label">Reportes</span>

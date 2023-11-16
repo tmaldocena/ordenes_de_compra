@@ -38,7 +38,7 @@
                                     <thead>
                                         <tr>
                                             <th>#</th>
-                                            <th>Lugar/Tienda</th>
+                                            <th>Transporte</th>
                                             <th>Precio ($)</th>
                                             <th>Seleccionado</th>
                                             <th>Acciones</th>
@@ -66,9 +66,9 @@
       </div>
       <div class="modal-body">
       <div class="col-lg-12 mt-4">
-            <label>Elegir Proveedor</label>
-            <select class="form-control" id="selectProveedor" style="width: 100%" data-hide-search="true">
-                <option value="0" selected disabled>Seleccione el proveedor</option>
+            <label>Elegir Transporte</label>
+            <select class="form-control" id="selectTransporte" style="width: 100%" data-hide-search="true">
+                <option value="0" selected disabled>Seleccione el transporte</option>
             </select>
         </div>
         <div class="col-lg-12 mt-4">
@@ -90,6 +90,6 @@
     </div>
     <?php include 'template/plugins.php'?>
   <!-- PAGE LEVEL SCRIPTS-->
-  <script src="../js/console-presupuestos.js" type="text/javascript"></script>
+  <script src="../js/console-presupuestosTransporte.js" type="text/javascript"></script>
 </body>
 </html>

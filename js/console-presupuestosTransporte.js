@@ -2,15 +2,15 @@ const urlParams = new URLSearchParams(window.location.search);
 const idOrden = urlParams.get('idOrden');
 let rating;
 let arrayPresupuestos = [];
-let arrayProveedores = [];
+let arrayTransportes = [];
 
 $(document).ready(function(){
     let nro = 4 - parseInt(idOrden.length);
     let orden = '0'.repeat(nro);
-    $("#titulo").html(`Presupuestos de la orden #${orden}${idOrden}`);
+    $("#titulo").html(`Presupuestos de la orden de transporte #${orden}${idOrden}`);
     $.ajax({
         "method": 'POST',
-        "url":"../controllers/presupuestos/presupuestosController.php",
+        "url":"../controllers/presupuestosT/presupuestosTController.php",
         "data":{
             orden_id: idOrden
         }
@@ -18,8 +18,7 @@ $(document).ready(function(){
         if(resp === 'null'){
             $('#tablePresupuesto').hide();
             $('#center').prepend(`
-            <h4 class="font-strong mt-3">No hay ningun presupuesto todavia.</h4>
-            `)
+            <h4 class="font-strong mt-3">No hay ningun presupuesto todavia.</h4>`);
             $('#presu_D').hide();
         }else{
             cont = 1;
@@ -34,7 +33,7 @@ $(document).ready(function(){
                 $("#tbodyPresupuesto").append(`
                 <tr id='${presu.pres_id}' title='Seleccionar presupuesto'>
                     <td>${cont++}</td>
-                    <td>${presu.tienda}</td>
+                    <td>${presu.transporte}</td>
                     <td>$${presu.precio}</td>
                     <td>${seleccionado}</td>
                     <td>${btn}</td>
@@ -44,14 +43,14 @@ $(document).ready(function(){
     })
     $.ajax({
         "method": 'POST',
-        "url":"../controllers/proveedores/proveedoresController.php"
+        "url":"../controllers/transportes/transportesController.php"
     }).then((resp) => {
-        console.log(JSON.parse(resp).data);
+        //console.log(JSON.parse(resp).data);
         let data = JSON.parse(resp).data;
-        arrayProveedores = data;
-        data.forEach(prov => {
-            $('#selectProveedor').append(`
-                <option value='${prov.proveedor_id}'>${prov.nombre}</option>
+        arrayTransportes = data;
+        data.forEach(transporte => {
+            $('#selectTransporte').append(`
+                <option value='${transporte.transporte_id}'>${transporte.nombre}</option>
             `)
         })
     })
@@ -112,19 +111,18 @@ const setRating = () => {
 }
 
 $('#addP').click(function(){
-    var lugar = $("#selectProveedor option:selected").html();
+    var transporte = $("#selectTransporte option:selected").html();
     var precio = $("#precioP").val();
     console.log(rating);
-    if(lugar.length == 0 || precio == 0){
+    if(transporte.length == "Seleccione el transporte" || precio == 0){
         Swal.fire("Atención!", "Campo vacío", "warning");
-        $('#modal_createPresu').modal('hide');
     }else{
          $.ajax({
-            url: '../controllers/presupuestos/createPresupuestoController.php',
+            url: '../controllers/presupuestosT/createPresupuestoTController.php',
             type: 'POST',
             data:{
                 orden_id: idOrden,
-                tienda: lugar,
+                transporte: transporte,
                 precio: precio
             }
         }).done(function(resp){
@@ -171,7 +169,7 @@ $(document).on('click', ".selectBtn", function(){
       }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: '../controllers/presupuestos/selectPresupuestoController.php',
+                url: '../controllers/presupuestosT/selectPresupuestoTController.php',
                 type: 'POST',
                 data:{
                     id: id,
@@ -258,6 +256,7 @@ $(document).on('click', ".selectBtn", function(){
         }
         })
 })
+
 $(document).on('click', ".unselectBtn", function(){
     console.log($(this).closest('tr'));
     let id = $(this).closest('tr').attr('id');
@@ -281,7 +280,7 @@ $(document).on('click', ".unselectBtn", function(){
       }).then((result) => {
         if (result.isConfirmed) {
             $.ajax({
-                url: '../controllers/presupuestos/selectPresupuestoController.php',
+                url: '../controllers/presupuestosT/selectPresupuestoTController.php',
                 type: 'POST',
                 data:{
                     id: id,
@@ -305,24 +304,3 @@ $(document).on('click', ".unselectBtn", function(){
         }
         })
 })
-
-/**
- * TODO: SP_SELECT_PRESUPUESTO
- * BEGIN
-	DECLARE CANT INT;
-        SET @CANT:=(SELECT COUNT(*) FROM presupuesto WHERE seleccionado = 'S');
-        IF @CANT = 0 THEN
-            SELECT 2;
-        ELSE
-            UPDATE presupuesto set
-            seleccionado = 'S'
-            WHERE pres_id=idP;
-            SELECT 1;
-        END IF;
-    END
- */
-
-/**
- * TODO: Queda actualizar el rating en los presupuestos
- * TODO: Queda toda la parte de orden de transporte (se puede copy-paste de lo que ya hice)
- */
