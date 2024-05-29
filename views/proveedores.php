@@ -20,7 +20,7 @@ if (!isset($_SESSION['S_IDUSER'])) {
     <div class="content-wrapper">
       <div class="page-heading row">
         <h1 class="col page-title">Proveedores</h1>
-        <button class="col-sm-2 align-self-end btn btn-secondary mr-3" onclick="tableToExcel('proveedores.xlsx')" id="download">Descargar (Excel)</button>
+        <button class="col-sm-2 align-self-end btn btn-secondary mr-3" id="btnExport">Descargar (Excel)</button>
         <button class="col-sm-2 align-self-end btn btn-primary mr-3" id="AddProveedor">Nuevo Proveedor</button>
       </div>
       <div class="page-content fade-in-up">
