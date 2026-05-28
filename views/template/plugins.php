@@ -19,6 +19,7 @@
     <script src="template/assets/vendors/DataTables/datatables.min.js" type="text/javascript"></script>
     <script src="template\assets\vendors\select2\dist\js\select2.min.js" type="text/javascript"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
     <!-- CORE SCRIPTS-->
     <script src="template/assets/js/app.min.js" type="text/javascript"></script>
     <script src="../../js/console-sidehead.js" type="text/javascript"></script>

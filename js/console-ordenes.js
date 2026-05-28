@@ -1,10 +1,10 @@
 var table;
 var sectorN = '';
 var idOrdenUpdate;
+var sectores;
 $(document).ready(function () {
     $('#tabla_ordenes').DataTable();
     listar_ordenes();
-    let sectores;
     $.ajax({
         "method":"POST",
         "url":"../controllers/sectores/sectoresController.php"
@@ -245,6 +245,301 @@ $('#tabla_ordenes').on('click', '.presupuestoBtn', function(){
     idOrdenPresupuesto = data.orden_id;
     window.location.href = `../../views/presupuestos.php?idOrden=${idOrdenPresupuesto}`;
 })
+
+// ========== BULK UPLOAD LOGIC ==========
+var bulkState = {
+    rawData: [],
+    columns: [],
+    mapping: { nombre: '', cantidad: '', sector: '', autorizada: '' },
+    step: 1,
+    currentFile: null
+};
+
+var BULK_FIELDS = ['nombre', 'cantidad', 'sector', 'autorizada'];
+var BULK_FIELD_LABELS = { nombre: 'Nombre', cantidad: 'Cantidad', sector: 'Sector', autorizada: 'Autorizada' };
+var BULK_AUTO_MATCH = {
+    nombre: ['nombre', 'name', 'producto', 'articulo', 'artículo', 'descripcion', 'descripción', 'item', 'product'],
+    cantidad: ['cantidad', 'quantity', 'cant', 'qty', 'count', 'amount'],
+    sector: ['sector', 'departamento', 'area', 'área', 'dept', 'department'],
+    autorizada: ['autorizada', 'autorizado', 'authorized', 'auth', 'aprobada', 'aprobado', 'approved']
+};
+
+function resetBulkState(){
+    bulkState = {
+        rawData: [],
+        columns: [],
+        mapping: { nombre: '', cantidad: '', sector: '', autorizada: '' },
+        step: 1,
+        currentFile: null
+    };
+}
+
+function goBulkStep(step){
+    bulkState.step = step;
+    $('.bulk-step').hide();
+    $(`.bulk-step-${step}`).show();
+
+    $('.bulk-step-indicator').removeClass('badge-primary').addClass('badge-secondary');
+    $(`#step${step}Indicator`).removeClass('badge-secondary').addClass('badge-primary');
+
+    $('#bulkBackBtn').toggle(step > 1);
+    $('#bulkNextBtn').hide();
+    $('#bulkImportBtn').hide();
+
+    if(step === 1){
+        $('#bulkNextBtn').prop('disabled', true).text('Siguiente').show();
+        checkBulkStep1();
+    } else if(step === 2){
+        $('#bulkNextBtn').prop('disabled', true).text('Siguiente').show();
+        checkBulkStep2();
+    } else if(step === 3){
+        $('#bulkImportBtn').show();
+    }
+}
+
+function checkBulkStep1(){
+    $('#bulkNextBtn').prop('disabled', !bulkState.currentFile);
+}
+
+function checkBulkStep2(){
+    var required = ['nombre', 'cantidad', 'sector'];
+    var ok = true;
+    required.forEach(function(f){
+        if(!bulkState.mapping[f]) ok = false;
+    });
+    $('#bulkNextBtn').prop('disabled', !ok);
+    if(!ok){
+        $('#bulkMappingError').show().text('Debes asignar los campos requeridos (Nombre, Cantidad, Sector).');
+    } else {
+        $('#bulkMappingError').hide();
+    }
+}
+
+function buildMappingDropdowns(){
+    var cols = bulkState.columns;
+    BULK_FIELDS.forEach(function(field){
+        var $select = $(`.bulk-mapping-select[data-field="${field}"]`);
+        $select.empty();
+        $select.append(`<option value="">─ ignorar ─</option>`);
+        cols.forEach(function(col){
+            $select.append(`<option value="${col}">${col}</option>`);
+        });
+        // Auto-detect
+        var match = null;
+        var lower = field.toLowerCase();
+        var keywords = BULK_AUTO_MATCH[field] || [];
+        cols.forEach(function(col){
+            var cl = col.toLowerCase().trim();
+            if(keywords.indexOf(cl) >= 0){
+                match = col;
+            }
+        });
+        if(match){
+            $select.val(match);
+            bulkState.mapping[field] = match;
+        } else {
+            bulkState.mapping[field] = '';
+        }
+    });
+}
+
+function generatePreview(){
+    var map = bulkState.mapping;
+    var data = bulkState.rawData;
+    var $tbody = $('#bulkPreviewBody');
+    $tbody.empty();
+
+    var validCount = 0;
+    var errorCount = 0;
+
+    data.forEach(function(row, idx){
+        var nombre = map.nombre ? (row[map.nombre] || '').toString().trim() : '';
+        var cantidad = map.cantidad ? (row[map.cantidad] || '').toString().trim() : '';
+        var sector = map.sector ? (row[map.sector] || '').toString().trim() : '';
+        var autorizada = map.autorizada ? (row[map.autorizada] || '').toString().trim() : '';
+
+        var errors = [];
+        if(!nombre) errors.push('Nombre vacío');
+        if(!cantidad || isNaN(cantidad) || Number(cantidad) <= 0) errors.push('Cantidad inválida');
+        if(!sector) errors.push('Sector vacío');
+        var sectorOk = false;
+        if(sectores && sectores.length){
+            sectorOk = sectores.some(function(s){
+                return s.nombre.toLowerCase() === sector.toLowerCase();
+            });
+        }
+        if(sector && !sectorOk) errors.push('Sector no reconocido');
+
+        if(errors.length === 0) validCount++;
+        else errorCount++;
+
+        var statusClass = errors.length === 0 ? 'text-success' : 'text-danger';
+        var statusIcon = errors.length === 0 ? 'fa-check-circle' : 'fa-exclamation-circle';
+
+        $tbody.append(`
+            <tr class="${errors.length > 0 ? 'table-danger' : ''}">
+                <td>${idx + 1}</td>
+                <td>${nombre || '<span class="text-muted">—</span>'}</td>
+                <td>${cantidad || '<span class="text-muted">—</span>'}</td>
+                <td>${sector || '<span class="text-muted">—</span>'}</td>
+                <td>${autorizada || 'NO'}</td>
+                <td><i class="fa ${statusIcon} ${statusClass}"></i> ${errors.join(', ') || 'Correcto'}</td>
+            </tr>
+        `);
+    });
+
+    $('#bulkPreviewCount').text(data.length);
+    var summary = '';
+    if(validCount > 0) summary += `<span class="text-success"><i class="fa fa-check-circle"></i> ${validCount} filas válidas</span>`;
+    if(errorCount > 0) summary += ` <span class="text-danger ml-3"><i class="fa fa-exclamation-circle"></i> ${errorCount} filas con errores</span>`;
+    $('#bulkSummary').html(summary);
+    $('#bulkImportBtn').prop('disabled', validCount === 0);
+}
+
+function getMappedData(){
+    var map = bulkState.mapping;
+    return bulkState.rawData.map(function(row){
+        var obj = {};
+        obj.nombre = map.nombre ? (row[map.nombre] || '').toString().trim() : '';
+        obj.cantidad = map.cantidad ? (row[map.cantidad] || '').toString().trim() : '';
+        obj.sector = map.sector ? (row[map.sector] || '').toString().trim() : '';
+        obj.autorizada = map.autorizada ? (row[map.autorizada] || '').toString().trim() : '';
+        return obj;
+    }).filter(function(row){
+        return row.nombre && row.cantidad && row.sector;
+    });
+}
+
+$(document).on('click', '#BulkUploadBtn', function(){
+    resetBulkState();
+    $('#bulkFileInput').val('');
+    $('#bulkFileLabel').text('Seleccionar archivo...');
+    $('#bulkFileInfo').hide();
+    goBulkStep(1);
+    $('#modal_bulkUpload').modal('show');
+});
+
+$(document).on('change', '#bulkFileInput', function(e){
+    var file = e.target.files[0];
+    if(!file) return;
+    bulkState.currentFile = file;
+    $('#bulkFileLabel').text(file.name);
+    $('#bulkFileInfo').show().text('Leyendo archivo...');
+
+    var reader = new FileReader();
+    reader.onload = function(ev){
+        try {
+            var wb = XLSX.read(ev.target.result, {type: 'array'});
+            var ws = wb.Sheets[wb.SheetNames[0]];
+            var json = XLSX.utils.sheet_to_json(ws, {defval: ''});
+
+            if(!json || json.length === 0){
+                Swal.fire('Error', 'El archivo no contiene datos', 'error');
+                $('#bulkFileInfo').hide();
+                checkBulkStep1();
+                return;
+            }
+
+            bulkState.rawData = json;
+            bulkState.columns = Object.keys(json[0]);
+            $('#bulkFileInfo').text('✓ ' + json.length + ' filas detectadas en ' + file.name);
+            $('#bulkNextBtn').prop('disabled', false);
+        } catch(err){
+            Swal.fire('Error', 'No se pudo leer el archivo: ' + err.message, 'error');
+            $('#bulkFileInfo').hide();
+            checkBulkStep1();
+        }
+    };
+    reader.readAsArrayBuffer(file);
+});
+
+$(document).on('click', '#bulkNextBtn', function(){
+    if(bulkState.step === 1){
+        buildMappingDropdowns();
+        goBulkStep(2);
+    } else if(bulkState.step === 2){
+        generatePreview();
+        goBulkStep(3);
+    }
+});
+
+$(document).on('click', '#bulkBackBtn', function(){
+    if(bulkState.step === 2){
+        goBulkStep(1);
+    } else if(bulkState.step === 3){
+        goBulkStep(2);
+    }
+});
+
+$(document).on('change', '.bulk-mapping-select', function(){
+    var field = $(this).data('field');
+    bulkState.mapping[field] = $(this).val();
+    checkBulkStep2();
+});
+
+$(document).on('click', '#bulkImportBtn', function(){
+    var data = getMappedData();
+    if(data.length === 0){
+        Swal.fire('Atención', 'No hay datos válidos para importar', 'warning');
+        return;
+    }
+
+    var btn = $(this);
+    btn.prop('disabled', true);
+    $('#bulkSpinner').show();
+
+    $.ajax({
+        url: '../controllers/ordenes/bulkCreateOrdenController.php',
+        type: 'POST',
+        data: { data: JSON.stringify(data) }
+    }).done(function(resp){
+        $('#bulkSpinner').hide();
+        var result;
+        try {
+            result = JSON.parse(resp);
+        } catch(e){
+            Swal.fire('Error', 'Respuesta inválida del servidor', 'error');
+            btn.prop('disabled', false);
+            return;
+        }
+
+        var msg = `<b>${result.success} órdenes importadas correctamente.</b>`;
+        if(result.errors && result.errors.length > 0){
+            msg += `<br><br><b>Errores (${result.errors.length}):</b><br>` + result.errors.join('<br>');
+        }
+
+        Swal.fire({
+            title: result.errors && result.errors.length > 0 ? 'Importación parcial' : 'Importación exitosa',
+            html: msg,
+            icon: result.errors && result.errors.length > 0 ? 'warning' : 'success',
+            confirmButtonText: 'Aceptar'
+        }).then(function(){
+            $('#modal_bulkUpload').modal('hide');
+            table.ajax.reload();
+        });
+    }).fail(function(){
+        $('#bulkSpinner').hide();
+        Swal.fire('Error', 'Error de conexión con el servidor', 'error');
+        btn.prop('disabled', false);
+    });
+});
+
+$(document).on('click', '#downloadTemplateBtn', function(e){
+    e.preventDefault();
+    var template = XLSX.utils.aoa_to_sheet([
+        ['Nombre', 'Cantidad', 'Sector', 'Autorizada'],
+        ['Resma A4 75gr', '50', 'Administración', 'SI'],
+        ['Toner HP 85A', '10', 'Mantenimiento', 'NO'],
+        ['Guantes de seguridad', '100', 'Producción', 'SI']
+    ]);
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, template, 'Ordenes');
+    XLSX.writeFile(wb, 'template_ordenes.xlsx');
+});
+
+$('#modal_bulkUpload').on('hidden.bs.modal', function(){
+    resetBulkState();
+});
 
 function sectorNamed(id){
 switch (id) {

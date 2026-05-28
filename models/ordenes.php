@@ -61,6 +61,50 @@ class ordenes{
             }
             $this->connection->close();
         }
+        function bulkRegisterOrden($data){
+            require_once 'sectores.php';
+            $MS = new sectores();
+            $sectoresList = $MS->list_sectores();
+            $sectorMap = array();
+            if($sectoresList && isset($sectoresList['data'])){
+                foreach($sectoresList['data'] as $s){
+                    $sectorMap[strtolower(trim($s['nombre']))] = $s['sector_id'];
+                }
+            }
+
+            $results = array('success' => 0, 'errors' => array());
+
+            foreach($data as $index => $row){
+                $nombre = trim($row['nombre']);
+                $cantidad = trim($row['cantidad']);
+                $sectorName = trim($row['sector']);
+                $autorizada = (isset($row['autorizada']) && strtoupper(trim($row['autorizada'])) === 'SI') ? 'SI' : 'NO';
+
+                if(empty($nombre)){
+                    $results['errors'][] = "Fila " . ($index + 1) . ": Nombre vacío";
+                    continue;
+                }
+                if(!is_numeric($cantidad) || $cantidad <= 0){
+                    $results['errors'][] = "Fila " . ($index + 1) . ": Cantidad inválida ('$cantidad')";
+                    continue;
+                }
+                $sectorId = isset($sectorMap[strtolower($sectorName)]) ? $sectorMap[strtolower($sectorName)] : null;
+                if(!$sectorId){
+                    $results['errors'][] = "Fila " . ($index + 1) . ": Sector '$sectorName' no encontrado";
+                    continue;
+                }
+
+                $result = $this->register_Orden($nombre, $cantidad, $sectorId, $autorizada, date('Y-m-d H:i:s', strtotime('-3 hour')));
+                if($result == 1){
+                    $results['success']++;
+                } else {
+                    $results['errors'][] = "Fila " . ($index + 1) . ": Error al registrar '$nombre'";
+                }
+            }
+
+            return $results;
+        }
+
         function filter_orden($sectorID){
             $sql = "call SP_FILTER_ORDEN('$sectorID')";
             $array = array();
