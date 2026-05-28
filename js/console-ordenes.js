@@ -365,8 +365,16 @@ function generatePreview(){
         var sectorOk = false;
         if(sectores && sectores.length){
             sectorOk = sectores.some(function(s){
-                return s.nombre.toLowerCase() === sector.toLowerCase();
+                var a = s.nombre.toLowerCase().trim();
+                var b = sector.toLowerCase().trim();
+                var localeMatch = s.nombre.localeCompare(sector, 'es', { sensitivity: 'base' }) === 0;
+                if(!localeMatch && a !== b){
+                    console.log('SECTOR MISMATCH: DB=['+s.nombre+'] CSV=['+sector+']');
+                }
+                return localeMatch || a === b;
             });
+        } else {
+            console.log('SECTORES NOT LOADED YET:', sectores);
         }
         if(sector && !sectorOk) errors.push('Sector no reconocido');
 
