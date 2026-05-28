@@ -365,16 +365,8 @@ function generatePreview(){
         var sectorOk = false;
         if(sectores && sectores.length){
             sectorOk = sectores.some(function(s){
-                var a = s.nombre.toLowerCase().trim();
-                var b = sector.toLowerCase().trim();
-                var localeMatch = s.nombre.localeCompare(sector, 'es', { sensitivity: 'base' }) === 0;
-                if(!localeMatch && a !== b){
-                    console.log('SECTOR MISMATCH: DB=['+s.nombre+'] CSV=['+sector+']');
-                }
-                return localeMatch || a === b;
+                return s.nombre.localeCompare(sector, 'es', { sensitivity: 'base' }) === 0;
             });
-        } else {
-            console.log('SECTORES NOT LOADED YET:', sectores);
         }
         if(sector && !sectorOk) errors.push('Sector no reconocido');
 
@@ -437,7 +429,13 @@ $(document).on('change', '#bulkFileInput', function(e){
     var reader = new FileReader();
     reader.onload = function(ev){
         try {
-            var wb = XLSX.read(ev.target.result, {type: 'array'});
+            var raw = ev.target.result;
+            var isCsv = file.name.match(/\.csv$/i);
+            if(isCsv && typeof TextDecoder !== 'undefined'){
+                var text = new TextDecoder('UTF-8').decode(raw);
+                raw = text;
+            }
+            var wb = XLSX.read(raw, {type: isCsv ? 'string' : 'array'});
             var ws = wb.Sheets[wb.SheetNames[0]];
             var json = XLSX.utils.sheet_to_json(ws, {defval: ''});
 
