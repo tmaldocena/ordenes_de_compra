@@ -25,7 +25,10 @@ class ordenes{
             $sql = "call SP_REGISTER_ORDEN('$nombre', '$cantidad', '$sector', '$auth', '$fecha')";
             if($request = $this->connection->connection->query($sql)){
                 if($row = mysqli_fetch_array($request)){
-                    return $response = trim($row[0]);
+                    $response = trim($row[0]);
+                    $request->free();
+                    while($this->connection->connection->next_result());
+                    return $response;
                 }
             }
 
